@@ -235,8 +235,8 @@
             label.innerText = file.name;
             fr.onload = function(evt) {
                 vudio.audioSrc.src = evt.target.result;
-                vudio.audioSrc.play();
-                vudio.dance();
+                // vudio.audioSrc.play();
+                // vudio.dance();
             }
             fr.readAsDataURL(file);
         },
