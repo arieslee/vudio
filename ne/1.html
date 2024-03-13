@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>柱状波形</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        overflow: hidden;
+        font-family: sans-serif;
+        background: #000000;
+        height: 100%;
+      }
+
+      body {
+        /* background: url(https://p1.music.126.net/gAmIGjlWnYXE_0O8LFp5-w==/109951164382001054.jpg)
+          no-repeat; */
+        background-size: cover;
+      }
+
+      #canvas {
+        width: 100%;
+        height: 100%;
+      }
+
+      audio {
+        visibility: hidden;
+      }
+      .btn-group {
+        position: absolute;
+        top: 30px;
+        left: 50%;
+        width: 350px;
+        text-align: center;
+        margin: 0 auto;
+        transform: translate(-50%, 0);
+      }
+
+      .btn {
+        color: #13091b;
+        background: #007a99;
+        display: block;
+        margin: 0 auto 10px auto;
+        width: 150px;
+        height: 45px;
+        line-height: 45px;
+        font-size: 18px;
+        cursor: pointer;
+        border-radius: 4px;
+        letter-spacing: 0.1em;
+        z-index: 1;
+        text-align: center;
+        text-decoration: none;
+      }
+      #audioFile {
+        opacity: 0;
+      }
+      .input {
+        border: none;
+        outline: none;
+        padding: 5px;
+        margin-bottom: 10px;
+        border-radius: 5px;
+      }
+      .pickerBox {
+        max-width: 1200px;
+        margin: 100px auto;
+      }
+      .picker {
+        width: 30px;
+        height: 30px;
+        cursor: pointer;
+      }
+    </style>
+    <link rel="stylesheet" href="./js/colorpicker.css" />
+    <script src="./js/colorpicker.js"></script>
+  </head>
+  <body>
+    <input
+      type="file"
+      name="audioFile"
+      id="audioFile"
+      onchange="readAuidoSrc(this)"
+      accept="audio/*,image/*"
+    />
+
+    <div id="content">
+      <canvas id="canvas"></canvas>
+      <audio id="audio" controls crossorigin="anonymous"></audio>
+
+      <div class="btn-group">
+        <table>
+          <tr>
+            <div class="picker" id="color-picker"></div>
+          </tr>
+          <tr>
+            <input type="number" class="input" id="barWidthRate" value="1.5" />
+          </tr>
+          <tr>
+            <a href="javascript:;" class="btn" id="play-btn">PLAY</a>
+            <a href="javascript:;" class="btn" id="load-music-btn"
+              >Load AUDIO</a
+            >
+          </tr>
+        </table>
+      </div>
+    </div>
+    <script>
+      var fillStyle = "rgba(0, 128, 0, 1)";
+      Colorpicker.create({
+        el: "color-picker",
+        color: "rgba(0, 128, 0, 1)",
+        change: function (elem, rgba) {
+          elem.style.backgroundColor = rgba;
+          fillStyle = rgba;
+        },
+      });
+      var btn = document.getElementById("play-btn");
+      btn.style.display = "none";
+      var audio = document.getElementById("audio");
+      var loadBtn = document.getElementById("load-music-btn");
+      var barWidthRate = document.getElementById("barWidthRate").value;
+      btn.onclick = function () {
+        btn.style.display = "none";
+        document.querySelector("#audioFile").value = "";
+        barWidthRate = document.getElementById("barWidthRate").value;
+        audio.play();
+        onLoadAudio();
+      };
+      loadBtn.onclick = () => {
+        document.querySelector("#audioFile").click();
+      };
+      function readAuidoSrc(fileEle) {
+        if (fileEle.files.length <= 0) {
+          return false;
+        }
+        audio.pause();
+        btn.style.display = "";
+        var fr = new FileReader();
+        var file = fileEle.files[0];
+        fr.onload = function (evt) {
+          audio.src = evt.target.result;
+        };
+        fr.readAsDataURL(file);
+      }
+      function onLoadAudio() {
+        var context = new (window.AudioContext || window.webkitAudioContext)();
+        var analyser = context.createAnalyser();
+        analyser.fftSize = 512;
+        var source = context.createMediaElementSource(audio);
+
+        source.connect(analyser);
+        analyser.connect(context.destination);
+
+        var bufferLength = analyser.frequencyBinCount;
+        var dataArray = new Uint8Array(bufferLength);
+
+        var canvas = document.getElementById("canvas");
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        var ctx = canvas.getContext("2d");
+        var WIDTH = canvas.width;
+        var HEIGHT = canvas.height;
+
+        var barWidth = (WIDTH / bufferLength) * barWidthRate;
+        var barHeight;
+
+        function renderFrame() {
+          requestAnimationFrame(renderFrame);
+
+          analyser.getByteFrequencyData(dataArray);
+
+          ctx.clearRect(0, 0, WIDTH, HEIGHT);
+
+          for (var i = 0, x = 0; i < bufferLength; i++) {
+            barHeight = dataArray[i];
+
+            var r = barHeight + 25 * (i / bufferLength);
+            var g = 250 * (i / bufferLength);
+            var b = 50;
+
+            // ctx.fillStyle = "rgb(" + r + "," + g + "," + b + ")";
+            ctx.fillStyle = fillStyle;
+            ctx.fillRect(x, HEIGHT - barHeight, barWidth, barHeight);
+
+            x += barWidth + 2;
+          }
+        }
+
+        renderFrame();
+        // setInterval(renderFrame, 44);
+      }
+    </script>
+  </body>
+</html>
