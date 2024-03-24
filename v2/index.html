@@ -11,7 +11,7 @@
     <div id="background"></div>
     <canvas id="visual-canvas"></canvas>
     <div id="threed-webgl-renderer" class="hidden"></div>
-    <audio id="music" class="hidden" controls></audio>
+    <audio id="music" class="hidden" autoplay="false" controls></audio>
     <input
       id="input-file"
       type="file"
@@ -36,12 +36,28 @@
     </div>
     <div id="play-mode"></div>
     <div id="fullscreen"></div>
-    <div id="song-name"></div>
+    <div id="song-name" onclick="playAudio()"></div>
     <script src="https://surunzi.github.io/VisualMusic/three.min.js"></script>
     <script src="https://cdn.bootcdn.net/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
     <script
       src="https://surunzi.github.io/VisualMusic/require.js"
       data-main="js/main"
     ></script>
+    <script>
+      var isPlay = false;
+      function playAudio(){
+        var music = document.querySelector('#music');
+        if(!music){
+          return false;
+        }
+        if(!isPlay){
+          music.play();
+          isPlay = true;
+        }else{
+          music.pause();
+          isPlay = false;
+        }
+      }
+    </script>
   </body>
 </html>
